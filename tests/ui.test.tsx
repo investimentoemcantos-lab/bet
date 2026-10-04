@@ -46,9 +46,9 @@ const catalog = [
   {
     id: "nat",
     kind: "national",
-    country: "Brasil",
-    name: "Amistosos",
-    teams: ["Brazil", "Argentina"],
+    country: "Internacional",
+    name: "Amistosos internacionais",
+    teams: ["Brasil", "Argentina"],
     source: "https://example.com",
     updated_at: "2026-10-04",
   },
@@ -118,12 +118,10 @@ describe("Entry workflow", () => {
       (screen.getByLabelText("Competição") as HTMLSelectElement).value,
     ).toBe("");
     await user.click(screen.getByRole("button", { name: "Seleções" }));
-    await user.selectOptions(
-      screen.getByLabelText("País-sede da competição"),
-      "Brasil",
-    );
+    expect(screen.queryByLabelText("País-sede da competição")).toBeNull();
+    expect(screen.queryByLabelText("País")).toBeNull();
     await user.selectOptions(screen.getByLabelText("Competição"), "nat");
-    expect(screen.getAllByRole("option", { name: "Brazil" })).toBeTruthy();
+    expect(screen.getAllByRole("option", { name: "Brasil" })).toBeTruthy();
   });
   it("prevents registering an entry without available funds", () => {
     render(

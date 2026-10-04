@@ -1,8 +1,13 @@
+import { competitionsFor } from "./catalog";
 import MarketPicker from "./MarketPicker";
 import { emptyMarket, marketLabel } from "./markets";
 import { useState } from "react";
 import { X, Check, ChevronRight } from "lucide-react";
 import { command, money, type Competition } from "./lib";
+const isMain = (name: string) =>
+  /^(Liga das Nações|Copa do Mundo|Eliminatórias|Copa América|Eurocopa|Copa da Ásia|Copa Africana|Copa Ouro|Amistosos)/.test(
+    name,
+  );
 export default function BetForm({
   catalog,
   balance,
@@ -28,9 +33,7 @@ export default function BetForm({
   const countries = [
     ...new Set(catalog.filter((c) => c.kind === kind).map((c) => c.country)),
   ].sort();
-  const leagues = catalog.filter(
-    (c) => c.kind === kind && c.country === country,
-  );
+  const leagues = competitionsFor(catalog, kind, country);
   const selected = catalog.find((c) => c.id === league);
   return (
     <div className="modal-backdrop">
@@ -126,29 +129,31 @@ export default function BetForm({
             </button>
           </div>
           <div className="form-grid">
-            <label>
-              {kind === "national" ? "País-sede da competição" : "País"}
-              <select
-                required
-                value={country}
-                onChange={(e) => {
-                  setCountry(e.target.value);
-                  setLeague("");
-                  setHome("");
-                  setAway("");
-                }}
-              >
-                <option value="">Selecione o país</option>
-                {countries.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </label>
-            <label>
+            {kind === "clubs" && (
+              <label>
+                País
+                <select
+                  required
+                  value={country}
+                  onChange={(e) => {
+                    setCountry(e.target.value);
+                    setLeague("");
+                    setHome("");
+                    setAway("");
+                  }}
+                >
+                  <option value="">Selecione o país</option>
+                  {countries.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className={kind === "national" ? "full" : undefined}>
               Competição
               <select
                 required
-                disabled={!country}
+                disabled={kind === "clubs" && !country}
                 value={league}
                 onChange={(e) => {
                   setLeague(e.target.value);
@@ -157,22 +162,49 @@ export default function BetForm({
                 }}
               >
                 <option value="">Selecione a competição</option>
-                {leagues.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
+                {kind === "national" ? (
+                  <>
+                    <optgroup label="Principais competições">
+                      {leagues
+                        .filter((c) => isMain(c.name))
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                    <optgroup label="Outras competições">
+                      {leagues
+                        .filter((c) => !isMain(c.name))
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                  </>
+                ) : (
+                  leagues.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))
+                )}
               </select>
             </label>
             <label>
-              Equipe 1
+              {kind === "national" ? "Seleção 1" : "Equipe 1"}
               <select
                 required
                 disabled={!league}
                 value={home}
                 onChange={(e) => setHome(e.target.value)}
               >
-                <option value="">Selecione a equipe</option>
+                <option value="">
+                  {kind === "national"
+                    ? "Selecione a seleção"
+                    : "Selecione a equipe"}
+                </option>
                 {selected?.teams
                   .filter((t) => t !== away)
                   .map((t) => (
@@ -181,14 +213,18 @@ export default function BetForm({
               </select>
             </label>
             <label>
-              Equipe 2
+              {kind === "national" ? "Seleção 2" : "Equipe 2"}
               <select
                 required
                 disabled={!league}
                 value={away}
                 onChange={(e) => setAway(e.target.value)}
               >
-                <option value="">Selecione a equipe</option>
+                <option value="">
+                  {kind === "national"
+                    ? "Selecione a seleção"
+                    : "Selecione a equipe"}
+                </option>
                 {selected?.teams
                   .filter((t) => t !== home)
                   .map((t) => (

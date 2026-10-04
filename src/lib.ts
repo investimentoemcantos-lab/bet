@@ -28,6 +28,7 @@ export type Ledger = {
   created_at: string;
 };
 export type Competition = {
+  selectable?: boolean;
   id: string;
   kind: string;
   country: string;

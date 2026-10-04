@@ -1,3 +1,4 @@
+import { selectableCatalog } from "./catalog";
 import { lazy, Suspense, type ReactNode } from "react";
 import {
   ArrowUpRight,
@@ -29,6 +30,7 @@ export default function CatalogPage({
   search: string;
   setSearch: (s: string) => void;
 }) {
+  catalog = selectableCatalog(catalog);
   return (
     <>
       <div className="catalog-toolbar">
