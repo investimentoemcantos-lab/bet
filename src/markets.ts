@@ -10,6 +10,16 @@ export type MarketDefinition = {
 export const MARKETS: MarketDefinition[] = [
   { id: "goals", name: "Gols", kind: "total", max: 10, scope: true },
   { id: "corners", name: "Escanteios", kind: "total", max: 30, scope: true },
+  {
+    id: "corners_result",
+    name: "Escanteios — resultado (1X2)",
+    kind: "choice",
+    choices: [
+      ["home", "Vitória da equipe 1 (1)"],
+      ["draw", "Empate (X)"],
+      ["away", "Vitória da equipe 2 (2)"],
+    ],
+  },
   { id: "cards", name: "Cartões", kind: "total", max: 15, scope: true },
   { id: "shots", name: "Finalizações", kind: "total", max: 50, scope: true },
   {
@@ -160,6 +170,21 @@ export function marketLines(m: MarketDefinition) {
     (_, i) => Math.round((min + i * step) * 100) / 100,
   );
 }
+export function marketChoiceLabel(
+  m: MarketDefinition,
+  choice: [string, string],
+  home: string,
+  away: string,
+) {
+  if (m.id === "corners_result" || m.id === "result") {
+    if (choice[0] === "home")
+      return home ? `Vitória de ${home} (1)` : choice[1];
+    if (choice[0] === "away")
+      return away ? `Vitória de ${away} (2)` : choice[1];
+    return "Empate (X)";
+  }
+  return choice[1];
+}
 export function marketLabel(
   v: MarketValue,
   home: string,
@@ -231,7 +256,12 @@ export function marketLabel(
   } else {
     const choice = m.choices?.find((c) => c[0] === v.selection);
     if (!choice) return "";
-    parts.push(choice[1]);
+    if (
+      ["result", "corners_result"].includes(m.id) &&
+      ((v.selection === "home" && !home) || (v.selection === "away" && !away))
+    )
+      return "";
+    parts.push(marketChoiceLabel(m, choice, home, away));
   }
   if (v.type !== "half_full") parts.push(period);
   const label = parts.join(" · ");

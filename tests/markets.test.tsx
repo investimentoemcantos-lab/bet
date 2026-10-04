@@ -28,6 +28,37 @@ describe("Market and line selection", () => {
       "Gols · Flamengo · Menos de 0,75 · 1º tempo",
     );
   });
+  it("selects Lithuania to win corners 1X2 without an over/under line", async () => {
+    function Match() {
+      const [v, setV] = useState(emptyMarket);
+      return (
+        <MarketPicker
+          value={v}
+          onChange={setV}
+          home="Azerbaijão"
+          away="Lituânia"
+        />
+      );
+    }
+    const u = userEvent.setup();
+    render(<Match />);
+    await selectOption(u, screen.getByLabelText("Mercado"), "corners_result");
+    expect(screen.queryByLabelText("Linha")).toBeNull();
+    expect(screen.queryByLabelText("Mais ou menos")).toBeNull();
+    await u.click(screen.getByLabelText("Seleção"));
+    expect(
+      screen.getByRole("option", { name: "Vitória de Lituânia (2)" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Empate (X)" })).toBeTruthy();
+    await selectOption(u, screen.getByLabelText("Seleção"), "away");
+    expect(screen.getByLabelText("Entrada selecionada").textContent).toBe(
+      "Escanteios — resultado (1X2) · Vitória de Lituânia (2) · Jogo inteiro",
+    );
+    await selectOption(u, screen.getByLabelText("Período"), "first");
+    expect(screen.getByLabelText("Entrada selecionada").textContent).toContain(
+      "1º tempo",
+    );
+  });
   it("clears incompatible line and selection when changing market", async () => {
     const u = userEvent.setup();
     render(<Fixture />);

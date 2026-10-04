@@ -5,6 +5,7 @@ import {
   emptyMarket,
   formatLine,
   marketLabel,
+  marketChoiceLabel,
   marketLines,
   type MarketValue,
 } from "./markets";
@@ -58,7 +59,7 @@ export default function MarketPicker({
             >
               {Object.entries(PERIODS).map(([id, name]) => (
                 <option key={id} value={id}>
-                  {name}
+                  {marketChoiceLabel(m, [id, name], home, away)}
                 </option>
               ))}
             </SearchableSelect>
@@ -159,7 +160,7 @@ export default function MarketPicker({
               <option value="">Selecione a opção</option>
               {m.choices?.map(([id, name]) => (
                 <option key={id} value={id}>
-                  {name}
+                  {marketChoiceLabel(m, [id, name], home, away)}
                 </option>
               ))}
             </SearchableSelect>
@@ -209,6 +210,13 @@ export default function MarketPicker({
       {m?.kind === "total" && (
         <p className="muted market-help">
           Linhas de 0,25 em 0,25: 0,5 · 0,75 · 1 · 1,25…
+        </p>
+      )}
+      {m?.id === "corners_result" && (
+        <p className="muted market-help">
+          Escolha quem terá mais escanteios no período: {home || "equipe 1"},
+          empate ou {away || "equipe 2"}. Este mercado não usa linha de mais ou
+          menos.
         </p>
       )}
       {m?.id === "european_handicap" && (

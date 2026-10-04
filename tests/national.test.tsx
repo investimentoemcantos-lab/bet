@@ -71,3 +71,41 @@ it("shows one unified friendly competition with all participants instead of host
   expect(national.some((c) => c.name === "Friendly")).toBe(false);
   expect(new Set(national.map((c) => c.name)).size).toBe(national.length);
 });
+it("registers the screenshot entry: Azerbaijan vs Lithuania, corners 1X2 Lithuania at 1.72", async () => {
+  const u = userEvent.setup(),
+    saved = vi.fn().mockResolvedValue(undefined);
+  render(
+    <BetForm
+      catalog={data as Competition[]}
+      balance={100}
+      onClose={() => {}}
+      onSaved={saved}
+    />,
+  );
+  await u.click(screen.getByRole("button", { name: "Seleções" }));
+  const league = data.find(
+    (c) => c.name === "Liga das Nações da UEFA D · 2026/27",
+  )!;
+  await selectOption(u, screen.getByLabelText("Competição"), league.id);
+  await selectOption(u, screen.getByLabelText("Seleção 1"), "Azerbaijão");
+  await selectOption(u, screen.getByLabelText("Seleção 2"), "Lituânia");
+  await selectOption(u, screen.getByLabelText("Mercado"), "corners_result");
+  await selectOption(u, screen.getByLabelText("Seleção"), "away");
+  await u.type(screen.getByLabelText("Valor da entrada (R$)"), "10");
+  await u.type(screen.getByLabelText("Odd decimal"), "1.72");
+  await u.click(screen.getByRole("button", { name: "Registrar entrada" }));
+  await waitFor(() => expect(saved).toHaveBeenCalledOnce());
+  expect(place).toHaveBeenCalledWith(
+    "place",
+    expect.objectContaining({
+      catalog_id: league.id,
+      home: "Azerbaijão",
+      away: "Lituânia",
+      stake: 10,
+      odds: 1.72,
+      market:
+        "Escanteios — resultado (1X2) · Vitória de Lituânia (2) · Jogo inteiro",
+    }),
+    expect.any(String),
+  );
+});
