@@ -2,7 +2,6 @@ import { bankrollBase, percentOfBase } from "./bankroll";
 import SearchableSelect from "./SearchableSelect";
 import DashboardPage from "./DashboardPage";
 import CatalogPage from "./CatalogPage";
-import AnalyticsPage from "./AnalyticsPage";
 import BankPage from "./BankPage";
 import EntryTable from "./EntryTable";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -38,11 +37,12 @@ import {
   type Competition,
 } from "./lib";
 
+const AnalyticsPage = lazy(() => import("./AnalyticsPage"));
 const pages = [
   ["dashboard", "Visão geral", LayoutDashboard],
   ["entries", "Minhas entradas", ListFilter],
   ["bank", "Minha banca", Wallet],
-  ["analytics", "Estatísticas", ChartNoAxesCombined],
+  ["analytics", "Análise detalhada", ChartNoAxesCombined],
   ["catalog", "Competições", Globe2],
 ] as const;
 export default function App() {
@@ -452,7 +452,7 @@ export default function App() {
               Atualizando seus dados…
             </p>
           )}
-          {(page === "dashboard" || page === "analytics") && (
+          {page === "dashboard" && (
             <>
               <div className="section-toolbar">
                 <span className="muted">Desempenho das entradas</span>
@@ -592,7 +592,18 @@ export default function App() {
             />
           )}
           {page === "analytics" && (
-            <AnalyticsPage scoped={scoped} catalog={catalog} />
+            <Suspense fallback={<p role="status">Carregando análise…</p>}>
+              <AnalyticsPage
+                entries={entries}
+                catalog={catalog}
+                baseBankroll={deposits}
+                onDetail={(e) => {
+                  setDetail(e);
+                  setResult(e.status);
+                  setNotice("");
+                }}
+              />
+            </Suspense>
           )}
           {page === "catalog" && (
             <CatalogPage
