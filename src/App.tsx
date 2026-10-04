@@ -1,3 +1,4 @@
+import { bankrollBase, percentOfBase } from "./bankroll";
 import SearchableSelect from "./SearchableSelect";
 import DashboardPage from "./DashboardPage";
 import CatalogPage from "./CatalogPage";
@@ -252,9 +253,8 @@ export default function App() {
   const exposure = entries
     .filter((e) => e.status === "pending")
     .reduce((s, e) => s + Number(e.stake), 0);
-  const deposits = ledger
-    .filter((l) => l.kind === "deposit")
-    .reduce((s, l) => s + Number(l.amount), 0);
+  const deposits = bankrollBase(ledger);
+  const bankrollRoi = percentOfBase(pnl, deposits);
   const chart = [
     { date: "Início", balance: 0 },
     ...ledger
@@ -467,7 +467,7 @@ export default function App() {
                   <option value="90">Últimos 90 dias</option>
                 </SearchableSelect>
               </div>
-              <div className="stats-grid">
+              <div className="stats-grid performance-stats">
                 <article className="stat main-stat">
                   <span>
                     Banca disponível
@@ -503,7 +503,7 @@ export default function App() {
                 </article>
                 <article className="stat">
                   <span>
-                    ROI
+                    ROI das entradas
                     <Activity size={18} />
                   </span>
                   <h2>
@@ -511,6 +511,17 @@ export default function App() {
                     <em>%</em>
                   </h2>
                   <small>Sobre {money(turnover)} liquidados</small>
+                </article>
+                <article className="stat">
+                  <span>
+                    ROI sobre a banca
+                    <ChartNoAxesCombined size={18} />
+                  </span>
+                  <h2 className={pnl < 0 ? "negative" : "positive"}>
+                    {bankrollRoi === null ? "—" : bankrollRoi.toFixed(1)}
+                    {bankrollRoi !== null && <em>%</em>}
+                  </h2>
+                  <small>Banca inicial + aportes: {money(deposits)}</small>
                 </article>
               </div>
             </>
@@ -602,6 +613,7 @@ export default function App() {
           entry={editing}
           catalog={catalog}
           balance={balance}
+          baseBankroll={deposits}
           onClose={() => setEditing(null)}
           onSaved={load}
         />
@@ -673,6 +685,7 @@ export default function App() {
         <BetForm
           catalog={catalog}
           balance={balance}
+          baseBankroll={deposits}
           onClose={() => setModal("")}
           onSaved={load}
         />

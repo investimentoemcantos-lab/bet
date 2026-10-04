@@ -1444,3 +1444,26 @@ textarea {
 .market-change input {
   width: auto;
 }
+
+.performance-stats {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.performance-stats .stat {
+  padding-inline: 18px;
+}
+.performance-stats .stat h2 {
+  font-size: clamp(24px, 2.1vw, 34px);
+}
+@media (max-width: 1200px) {
+  .performance-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 950px) {
+  .performance-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .performance-stats .stat:last-child {
+    grid-column: 1/-1;
+  }
+}

@@ -95,6 +95,29 @@ describe("Entry workflow", () => {
     );
     expect(close).toHaveBeenCalledOnce();
   });
+  it("calculates a stake using deposited capital even when the available bankroll includes profit", async () => {
+    const user = userEvent.setup();
+    render(
+      <BetForm
+        catalog={catalog}
+        balance={150}
+        baseBankroll={102}
+        onClose={() => {}}
+        onSaved={async () => {}}
+      />,
+    );
+    await user.type(screen.getByLabelText("Stake (% da banca base)"), "2.5");
+    expect(
+      (screen.getByLabelText("Valor da entrada (R$)") as HTMLInputElement)
+        .value,
+    ).toBe("2.55");
+    await user.clear(screen.getByLabelText("Valor da entrada (R$)"));
+    await user.type(screen.getByLabelText("Valor da entrada (R$)"), "10.2");
+    expect(
+      (screen.getByLabelText("Stake (% da banca base)") as HTMLInputElement)
+        .value,
+    ).toBe("10");
+  });
   it("edits an existing odd without replacing its market or result", async () => {
     const user = userEvent.setup();
     const entry = {

@@ -1,3 +1,4 @@
+import { percentOfBase, stakeFromPercent } from "./bankroll";
 import SearchableSelect from "./SearchableSelect";
 import { competitionsFor } from "./catalog";
 import MarketPicker from "./MarketPicker";
@@ -12,6 +13,7 @@ const isMain = (name: string) =>
 export default function BetForm({
   catalog,
   balance,
+  baseBankroll = 0,
   onClose,
   onSaved,
   entry,
@@ -19,6 +21,7 @@ export default function BetForm({
   entry?: Entry;
   catalog: Competition[];
   balance: number;
+  baseBankroll?: number;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -31,6 +34,13 @@ export default function BetForm({
   const [home, setHome] = useState(entry?.home ?? "");
   const [away, setAway] = useState(entry?.away ?? "");
   const [stake, setStake] = useState(entry ? String(entry.stake) : "");
+  const [stakePercent, setStakePercent] = useState(
+    entry && baseBankroll > 0
+      ? String(
+          Number(percentOfBase(Number(entry.stake), baseBankroll)!.toFixed(4)),
+        )
+      : "",
+  );
   const [odds, setOdds] = useState(entry ? String(entry.odds) : "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -278,9 +288,51 @@ export default function BetForm({
                 step="0.01"
                 required
                 value={stake}
-                onChange={(e) => setStake(e.target.value)}
+                onChange={(e) => {
+                  setStake(e.target.value);
+                  setStakePercent(
+                    e.target.value && baseBankroll > 0
+                      ? String(
+                          Number(
+                            percentOfBase(
+                              Number(e.target.value),
+                              baseBankroll,
+                            )!.toFixed(4),
+                          ),
+                        )
+                      : "",
+                  );
+                }}
                 placeholder="0,00"
               />
+            </label>
+            <label>
+              Stake (% da banca base)
+              <input
+                aria-label="Stake (% da banca base)"
+                type="number"
+                min="0.01"
+                step="any"
+                disabled={baseBankroll <= 0}
+                value={stakePercent}
+                onChange={(e) => {
+                  setStakePercent(e.target.value);
+                  setStake(
+                    e.target.value === ""
+                      ? ""
+                      : String(
+                          stakeFromPercent(
+                            Number(e.target.value),
+                            baseBankroll,
+                          ),
+                        ),
+                  );
+                }}
+                placeholder="Ex.: 2"
+              />
+              <small className="muted">
+                Base: {money(baseBankroll)} · banca inicial + aportes
+              </small>
             </label>
             <label>
               Odd decimal
