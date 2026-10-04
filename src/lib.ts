@@ -1,3 +1,4 @@
+import { netProfit } from "./settlement";
 import { createClient } from "@supabase/supabase-js";
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -12,6 +13,7 @@ export type Entry = {
   stake: number;
   odds: number;
   status: string;
+  cashout_amount?: number | null;
   bookmaker: string;
   notes: string;
   event_at: string;
@@ -51,13 +53,9 @@ export const statusName: Record<string, string> = {
   won: "Ganha",
   lost: "Perdida",
   refunded: "Reembolsada",
+  cashed_out: "Encerrada",
 };
-export const profit = (e: Entry) =>
-  e.status === "won"
-    ? Math.round(Number(e.stake) * (Number(e.odds) - 1) * 100) / 100
-    : e.status === "lost"
-      ? -Number(e.stake)
-      : 0;
+export const profit = netProfit;
 export async function command(
   action: string,
   payload: Record<string, unknown>,

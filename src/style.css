@@ -1674,3 +1674,16 @@ textarea {
     padding-inline: 16px;
   }
 }
+
+.badge.cashed_out {
+  color: #a4cfff;
+  background: #214062;
+}
+.cashout-fields {
+  margin-top: 18px;
+}
+.cashout-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

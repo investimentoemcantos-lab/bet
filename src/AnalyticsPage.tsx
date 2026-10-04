@@ -377,7 +377,8 @@ export default function AnalyticsPage({
           <strong>{summary.pending}</strong> abertas · {money(summary.exposure)}
         </span>
         <span>
-          <strong>{summary.refunded}</strong> reembolsadas
+          <strong>{summary.refunded}</strong> reembolsadas · {summary.cashedOut}{" "}
+          encerradas
         </span>
         <span>
           Odd média <strong>{number(summary.averageOdds)}</strong>
@@ -509,9 +510,11 @@ export default function AnalyticsPage({
         </div>
         <p className="analysis-note">
           {rows.length} grupos · Clique em um grupo para conferir as entradas.
-          ROI e acerto usam apenas ganhas e perdidas; abertas e reembolsadas
-          aparecem nas contagens. O mínimo de liquidadas afeta os rankings e a
-          tabela, sem alterar o resumo.
+          ROI e acerto usam apenas ganhas, perdidas e encerradas; abertas e
+          reembolsadas aparecem nas contagens. Encerramentos com lucro contam
+          como ganhos; com prejuízo, como perdas. Encerramentos sem lucro nem
+          prejuízo não entram no acerto. O mínimo de liquidadas afeta os
+          rankings e a tabela, sem alterar o resumo.
         </p>
         {rows.length ? (
           <div className="table-scroll">
@@ -738,11 +741,12 @@ export default function AnalyticsPage({
         )}
       </section>
       <p className="muted analysis-method">
-        Ganhos líquidos: lucro das entradas ganhas, sem a devolução da stake.
-        Perdas: stakes das entradas perdidas. Lucro líquido = ganhos − perdas.
-        ROI = lucro / volume liquidado. Maior queda de lucro: queda acumulada
-        desde um pico, em ordem de liquidação. Rankings descrevem seu histórico;
-        amostras pequenas podem variar bastante.
+        Ganhos líquidos: resultados positivos, incluindo encerramentos, sem a
+        devolução da stake. Perdas: resultados negativos, incluindo
+        encerramentos. Lucro líquido = ganhos − perdas. ROI = lucro / volume
+        liquidado. Maior queda de lucro: queda acumulada desde um pico, em ordem
+        de liquidação. Rankings descrevem seu histórico; amostras pequenas podem
+        variar bastante.
       </p>
     </div>
   );

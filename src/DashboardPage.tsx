@@ -1,3 +1,4 @@
+import { isWin, isLoss } from "./settlement";
 import { lazy, Suspense, type ReactNode } from "react";
 import {
   ArrowUpRight,
@@ -37,8 +38,8 @@ export default function DashboardPage({
   setModal: (v: string) => void;
   table: (e: Entry[]) => ReactNode;
 }) {
-  won = entries.filter((e) => e.status === "won");
-  lost = entries.filter((e) => e.status === "lost");
+  won = entries.filter(isWin);
+  lost = entries.filter(isLoss);
   return (
     <>
       <div className="dashboard-grid">

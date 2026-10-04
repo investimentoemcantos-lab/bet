@@ -1,3 +1,5 @@
+import CashoutFields from "./CashoutFields";
+import { isSettled, isWin, isLoss, validCashout } from "./settlement";
 import { bankrollBase, percentOfBase } from "./bankroll";
 import SearchableSelect from "./SearchableSelect";
 import DashboardPage from "./DashboardPage";
@@ -63,6 +65,14 @@ export default function App() {
   const [editing, setEditing] = useState<Entry | null>(null);
   const [deleting, setDeleting] = useState<Entry | null>(null);
   const [detail, setDetail] = useState<Entry | null>(null);
+  const [cashoutAmount, setCashoutAmount] = useState("");
+  useEffect(
+    () =>
+      setCashoutAmount(
+        detail?.cashout_amount == null ? "" : String(detail.cashout_amount),
+      ),
+    [detail?.id],
+  );
   const [result, setResult] = useState("");
   const [notice, setNotice] = useState("");
   const [mutationRequest, setMutationRequest] = useState(() =>
@@ -72,7 +82,7 @@ export default function App() {
   activeUser.current = session?.user.id;
   useEffect(
     () => setMutationRequest(crypto.randomUUID()),
-    [modal, detail?.id, deleting?.id, result],
+    [modal, detail?.id, deleting?.id, result, cashoutAmount],
   );
   useEffect(() => {
     supabase.auth
@@ -242,10 +252,12 @@ export default function App() {
       ),
     [entries, period],
   );
-  const won = scoped.filter((e) => e.status === "won");
-  const lost = scoped.filter((e) => e.status === "lost");
+  const won = scoped.filter(isWin);
+  const lost = scoped.filter(isLoss);
   const pnl = scoped.reduce((s, e) => s + profit(e), 0);
-  const turnover = won.concat(lost).reduce((s, e) => s + Number(e.stake), 0);
+  const turnover = scoped
+    .filter(isSettled)
+    .reduce((s, e) => s + Number(e.stake), 0);
   const rate =
     won.length + lost.length
       ? (won.length / (won.length + lost.length)) * 100
@@ -282,6 +294,7 @@ export default function App() {
         "Valor",
         "Odd",
         "Resultado",
+        "Valor de encerramento",
         "Lucro",
       ],
       ...filtered.map((e) => [
@@ -292,6 +305,7 @@ export default function App() {
         e.stake,
         e.odds,
         statusName[e.status],
+        e.cashout_amount ?? "",
         profit(e),
       ]),
     ];
@@ -485,7 +499,7 @@ export default function App() {
                     {money(pnl)}
                   </h2>
                   <small>
-                    {won.length + lost.length} entradas com ganho ou perda
+                    {scoped.filter(isSettled).length} entradas liquidadas
                   </small>
                 </article>
                 <article className="stat">
@@ -863,10 +877,18 @@ export default function App() {
                 ))}
               </SearchableSelect>
             </label>
+            {result === "cashed_out" && (
+              <CashoutFields
+                stake={Number(detail.stake)}
+                value={cashoutAmount}
+                onChange={setCashoutAmount}
+              />
+            )}
             <p className="muted">
-              Ganha: credita entrada + lucro. Perdida: mantém o débito.
-              Reembolsada: devolve a entrada. Ao corrigir, o crédito anterior é
-              revertido automaticamente.
+              Encerrada: devolve o valor recebido, e o lucro ou prejuízo é a
+              diferença para a entrada. Ganha: credita entrada + lucro. Perdida:
+              mantém o débito. Reembolsada: devolve a entrada. Ao corrigir, o
+              crédito anterior é revertido automaticamente.
             </p>
             {notice && (
               <p className="error" role="alert">
@@ -894,14 +916,26 @@ export default function App() {
               </button>
               <button
                 className="primary"
-                disabled={busy || result === detail.status}
+                disabled={
+                  busy ||
+                  (result === "cashed_out" && !validCashout(cashoutAmount)) ||
+                  (result === detail.status &&
+                    (result !== "cashed_out" ||
+                      Number(cashoutAmount) === Number(detail.cashout_amount)))
+                }
                 onClick={async () => {
                   setBusy(true);
                   setNotice("");
                   try {
                     await command(
                       "settle",
-                      { id: detail.id, status: result },
+                      {
+                        id: detail.id,
+                        status: result,
+                        ...(result === "cashed_out"
+                          ? { cashout_amount: Number(cashoutAmount) }
+                          : {}),
+                      },
                       mutationRequest,
                     );
                     await load();

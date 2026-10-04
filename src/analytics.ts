@@ -1,3 +1,5 @@
+import { netProfit, isSettled, isWin, isLoss } from "./settlement";
+export { netProfit } from "./settlement";
 import type { Competition, Entry } from "./lib";
 export type Dimension =
   "market" | "selection" | "league" | "team" | "odds" | "bookmaker" | "period";
@@ -30,12 +32,6 @@ export const gamePeriod = (e: Entry) =>
   ["Jogo inteiro", "1º tempo", "2º tempo"].find((p) =>
     e.market.split(" · ").includes(p),
   ) ?? "Não informado / outro";
-export const netProfit = (e: Entry) =>
-  e.status === "won"
-    ? Math.round(Number(e.stake) * Number(e.odds) * 100) / 100 - Number(e.stake)
-    : e.status === "lost"
-      ? -Number(e.stake)
-      : 0;
 export type Metrics = {
   total: number;
   settled: number;
@@ -43,6 +39,7 @@ export type Metrics = {
   lost: number;
   refunded: number;
   pending: number;
+  cashedOut: number;
   volume: number;
   exposure: number;
   gains: number;
@@ -60,14 +57,12 @@ export type Metrics = {
 };
 const cents = (n: number) => Math.round(n * 100) / 100;
 export function metrics(entries: Entry[]): Metrics {
-  const settled = entries.filter(
-    (e) => e.status === "won" || e.status === "lost",
-  );
-  const won = settled.filter((e) => e.status === "won");
-  const lost = settled.filter((e) => e.status === "lost");
+  const settled = entries.filter(isSettled);
+  const won = settled.filter(isWin);
+  const lost = settled.filter(isLoss);
   const volume = cents(settled.reduce((s, e) => s + Number(e.stake), 0));
   const gains = cents(won.reduce((s, e) => s + netProfit(e), 0));
-  const losses = cents(lost.reduce((s, e) => s + Number(e.stake), 0));
+  const losses = cents(lost.reduce((s, e) => s - netProfit(e), 0));
   const pending = entries.filter((e) => e.status === "pending");
   const profits = settled.map(netProfit);
   let accumulated = 0,
@@ -89,14 +84,20 @@ export function metrics(entries: Entry[]): Metrics {
     lost: lost.length,
     refunded: entries.filter((e) => e.status === "refunded").length,
     pending: pending.length,
+    cashedOut: entries.filter((e) => e.status === "cashed_out").length,
     volume,
     exposure: cents(pending.reduce((s, e) => s + Number(e.stake), 0)),
     gains,
     losses,
     net: cents(gains - losses),
-    returns: cents(won.reduce((s, e) => s + Number(e.stake) + netProfit(e), 0)),
+    returns: cents(
+      settled.reduce((s, e) => s + Number(e.stake) + netProfit(e), 0),
+    ),
     roi: volume ? ((gains - losses) / volume) * 100 : null,
-    accuracy: settled.length ? (won.length / settled.length) * 100 : null,
+    accuracy:
+      won.length + lost.length
+        ? (won.length / (won.length + lost.length)) * 100
+        : null,
     averageOdds: settled.length
       ? settled.reduce((s, e) => s + Number(e.odds), 0) / settled.length
       : null,

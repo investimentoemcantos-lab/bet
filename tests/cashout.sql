@@ -1,0 +1,42 @@
+begin;
+do $$
+declare uid uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid(); c public.bet_catalog; entry_id uuid; req uuid; payout numeric; expected numeric; caught boolean;
+begin
+ insert into auth.users(id) values(uid),(outsider);
+ perform set_config('request.jwt.claim.sub',uid::text,true);
+ select * into c from public.bet_catalog where jsonb_array_length(teams)>=2 limit 1;
+ perform public.bet_command('deposit','{"amount":100}',gen_random_uuid());
+ foreach payout in array array[7,15,10,0] loop
+  entry_id:=(public.bet_command('place',jsonb_build_object('catalog_id',c.id,'home',c.teams->>0,'away',c.teams->>1,'market','Teste cashout','stake',10,'odds',2,'event_at',now()),gen_random_uuid())->>'entry_id')::uuid;
+  req:=gen_random_uuid();
+  perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','cashed_out','cashout_amount',payout),req);
+  perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','cashed_out','cashout_amount',payout),req);
+  expected:=90+payout;
+  if (select balance from public.bet_wallets where user_id=uid)<>expected then raise exception 'Cashout balance mismatch';end if;
+  perform set_config('request.jwt.claim.sub',outsider::text,true);
+  caught:=false;
+  begin perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','cashed_out','cashout_amount',50),gen_random_uuid());exception when others then caught:=sqlerrm='Entrada não encontrada.';end;
+  if not caught then raise exception 'Ownership failed';end if;
+  perform set_config('request.jwt.claim.sub',uid::text,true);
+  perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','cashed_out','cashout_amount',15),gen_random_uuid());
+  if (select balance from public.bet_wallets where user_id=uid)<>105 then raise exception 'Correction mismatch';end if;
+  perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','won'),gen_random_uuid());
+  if (select balance from public.bet_wallets where user_id=uid)<>110 or (select cashout_amount from public.bet_entries where id=entry_id) is not null then raise exception 'Won correction failed';end if;
+  perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','cashed_out','cashout_amount',7),gen_random_uuid());
+  perform public.bet_command('edit',jsonb_build_object('id',entry_id,'catalog_id',c.id,'home',c.teams->>0,'away',c.teams->>1,'market','Teste cashout','stake',20,'odds',3,'event_at',now()),gen_random_uuid());
+  if (select balance from public.bet_wallets where user_id=uid)<>87 then raise exception 'Cashout edit mismatch';end if;
+  perform public.bet_command('delete',jsonb_build_object('id',entry_id),gen_random_uuid());
+  if (select balance from public.bet_wallets where user_id=uid)<>100 then raise exception 'Cashout deletion mismatch';end if;
+ end loop;
+ entry_id:=(public.bet_command('place',jsonb_build_object('catalog_id',c.id,'home',c.teams->>0,'away',c.teams->>1,'market','Teste','stake',10,'odds',2,'event_at',now()),gen_random_uuid())->>'entry_id')::uuid;
+ caught:=false;
+ begin perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','cashed_out','cashout_amount',-1),gen_random_uuid());exception when others then caught:=true;end;
+ if not caught or (select balance from public.bet_wallets where user_id=uid)<>90 then raise exception 'Invalid cashout accepted';end if;
+ perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','cashed_out','cashout_amount',15),gen_random_uuid());
+ perform public.bet_command('withdraw','{"amount":104}',gen_random_uuid());
+ caught:=false;
+ begin perform public.bet_command('settle',jsonb_build_object('id',entry_id,'status','cashed_out','cashout_amount',7),gen_random_uuid());exception when others then caught:=sqlerrm='Saldo insuficiente para esta operação.';end;
+ if not caught or (select cashout_amount from public.bet_entries where id=entry_id)<>15 then raise exception 'Insufficient funds rollback failed';end if;
+end;$$;
+select 'cashout profit/loss/zero, correction, edit, delete, ownership, idempotency and rollback passed' as test;
+rollback;
