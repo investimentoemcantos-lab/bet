@@ -4,7 +4,7 @@ import MarketPicker from "./MarketPicker";
 import { emptyMarket, marketLabel } from "./markets";
 import { useState } from "react";
 import { X, Check, ChevronRight } from "lucide-react";
-import { command, money, type Competition } from "./lib";
+import { command, money, type Competition, type Entry } from "./lib";
 const isMain = (name: string) =>
   /^(Liga das Nações|Copa do Mundo|Eliminatórias|Copa América|Eurocopa|Copa da Ásia|Copa Africana|Copa Ouro|Amistosos)/.test(
     name,
@@ -14,20 +14,24 @@ export default function BetForm({
   balance,
   onClose,
   onSaved,
+  entry,
 }: {
+  entry?: Entry;
   catalog: Competition[];
   balance: number;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
   const [market, setMarket] = useState(emptyMarket);
-  const [kind, setKind] = useState("clubs");
-  const [country, setCountry] = useState("");
-  const [league, setLeague] = useState("");
-  const [home, setHome] = useState("");
-  const [away, setAway] = useState("");
-  const [stake, setStake] = useState("");
-  const [odds, setOdds] = useState("");
+  const originalCompetition = catalog.find((c) => c.id === entry?.catalog_id);
+  const [changeMarket, setChangeMarket] = useState(!entry);
+  const [kind, setKind] = useState(originalCompetition?.kind ?? "clubs");
+  const [country, setCountry] = useState(originalCompetition?.country ?? "");
+  const [league, setLeague] = useState(entry?.catalog_id ?? "");
+  const [home, setHome] = useState(entry?.home ?? "");
+  const [away, setAway] = useState(entry?.away ?? "");
+  const [stake, setStake] = useState(entry ? String(entry.stake) : "");
+  const [odds, setOdds] = useState(entry ? String(entry.odds) : "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [request] = useState(crypto.randomUUID());
@@ -35,6 +39,12 @@ export default function BetForm({
     ...new Set(catalog.filter((c) => c.kind === kind).map((c) => c.country)),
   ].sort();
   const leagues = competitionsFor(catalog, kind, country);
+  if (
+    originalCompetition &&
+    league === originalCompetition.id &&
+    !leagues.some((c) => c.id === league)
+  )
+    leagues.push(originalCompetition);
   const selected = catalog.find((c) => c.id === league);
   return (
     <div className="modal-backdrop">
@@ -47,7 +57,9 @@ export default function BetForm({
         <header>
           <div>
             <p className="eyebrow">REGISTRO DE ENTRADA</p>
-            <h2 id="bet-title">Qual é a sua entrada?</h2>
+            <h2 id="bet-title">
+              {entry ? "Editar entrada" : "Qual é a sua entrada?"}
+            </h2>
           </div>
           <button
             autoFocus
@@ -72,14 +84,17 @@ export default function BetForm({
             setError("");
             const f = new FormData(e.currentTarget);
             try {
-              const label = marketLabel(market, home, away);
+              const label = changeMarket
+                ? marketLabel(market, home, away)
+                : entry?.market;
               if (!label)
                 throw new Error(
                   "Selecione o mercado e preencha a seleção e a linha.",
                 );
               await command(
-                "place",
+                entry ? "edit" : "place",
                 {
+                  ...(entry ? { id: entry.id } : {}),
                   catalog_id: league,
                   home,
                   away,
@@ -233,18 +248,33 @@ export default function BetForm({
                   ))}
               </SearchableSelect>
             </label>
-            <MarketPicker
-              value={market}
-              onChange={setMarket}
-              home={home}
-              away={away}
-            />
+            {entry && (
+              <div className="full">
+                <p>Mercado atual: {entry.market}</p>
+                <label className="market-change">
+                  <input
+                    type="checkbox"
+                    checked={changeMarket}
+                    onChange={(e) => setChangeMarket(e.target.checked)}
+                  />
+                  Alterar mercado e linha
+                </label>
+              </div>
+            )}
+            {changeMarket && (
+              <MarketPicker
+                value={market}
+                onChange={setMarket}
+                home={home}
+                away={away}
+              />
+            )}
             <label>
               Valor da entrada (R$)
               <input
                 type="number"
                 min="0.01"
-                max={balance}
+                max={entry ? undefined : balance}
                 step="0.01"
                 required
                 value={stake}
@@ -271,7 +301,8 @@ export default function BetForm({
                 type="datetime-local"
                 required
                 defaultValue={new Date(
-                  Date.now() - new Date().getTimezoneOffset() * 60000,
+                  (entry ? new Date(entry.event_at).getTime() : Date.now()) -
+                    new Date().getTimezoneOffset() * 60000,
                 )
                   .toISOString()
                   .slice(0, 16)}
@@ -279,11 +310,17 @@ export default function BetForm({
             </label>
             <label>
               Casa de apostas
-              <input name="bookmaker" maxLength={100} placeholder="Opcional" />
+              <input
+                defaultValue={entry?.bookmaker}
+                name="bookmaker"
+                maxLength={100}
+                placeholder="Opcional"
+              />
             </label>
             <label className="full">
               Observações
               <textarea
+                defaultValue={entry?.notes}
                 name="notes"
                 maxLength={2000}
                 placeholder="Sua análise ou detalhes da entrada"
@@ -303,7 +340,14 @@ export default function BetForm({
             </span>
           </div>
           <p className="muted">
-            Disponível: {money(balance)}. O valor será debitado ao registrar.
+            {entry ? (
+              "O saldo será ajustado automaticamente conforme o valor, a odd e o resultado atual da entrada."
+            ) : (
+              <>
+                Disponível: {money(balance)}. O valor será debitado ao
+                registrar.
+              </>
+            )}
           </p>
           {error && (
             <p className="error" role="alert">
@@ -314,9 +358,16 @@ export default function BetForm({
             <button type="button" onClick={onClose}>
               Cancelar
             </button>
-            <button className="primary" disabled={busy || balance <= 0}>
+            <button
+              className="primary"
+              disabled={busy || (!entry && balance <= 0)}
+            >
               <Check size={17} />
-              {busy ? "Registrando…" : "Registrar entrada"}
+              {busy
+                ? "Salvando…"
+                : entry
+                  ? "Salvar alterações"
+                  : "Registrar entrada"}
             </button>
           </footer>
         </form>

@@ -1,4 +1,4 @@
-import { Activity, ChevronRight } from "lucide-react";
+import { Activity, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import {
   money,
   date,
@@ -15,6 +15,8 @@ export default function EntryTable({
   balance,
   onDetail,
   onStart,
+  onEdit,
+  onDelete,
 }: {
   data: Entry[];
   catalog: Competition[];
@@ -23,6 +25,8 @@ export default function EntryTable({
   balance: number;
   onDetail: (e: Entry) => void;
   onStart: () => void;
+  onEdit: (e: Entry) => void;
+  onDelete: (e: Entry) => void;
 }) {
   return data.length ? (
     <div className="table-scroll">
@@ -35,7 +39,7 @@ export default function EntryTable({
             <th>Odd</th>
             <th>Resultado</th>
             <th>Lucro líquido</th>
-            <th />
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -72,13 +76,31 @@ export default function EntryTable({
                 {e.status === "pending" ? "—" : money(profit(e))}
               </td>
               <td>
-                <button
-                  className="icon-button"
-                  aria-label={"Detalhar " + e.home + " × " + e.away}
-                  onClick={() => onDetail(e)}
-                >
-                  <ChevronRight size={18} />
-                </button>
+                <div className="entry-actions">
+                  <button
+                    className="icon-button"
+                    aria-label={"Editar " + e.home + " × " + e.away}
+                    title="Editar entrada"
+                    onClick={() => onEdit(e)}
+                  >
+                    <Pencil size={17} />
+                  </button>
+                  <button
+                    className="icon-button danger"
+                    aria-label={"Apagar " + e.home + " × " + e.away}
+                    title="Apagar entrada"
+                    onClick={() => onDelete(e)}
+                  >
+                    <Trash2 size={17} />
+                  </button>
+                  <button
+                    className="icon-button"
+                    aria-label={"Detalhar " + e.home + " × " + e.away}
+                    onClick={() => onDetail(e)}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

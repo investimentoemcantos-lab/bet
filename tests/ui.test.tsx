@@ -95,6 +95,53 @@ describe("Entry workflow", () => {
     );
     expect(close).toHaveBeenCalledOnce();
   });
+  it("edits an existing odd without replacing its market or result", async () => {
+    const user = userEvent.setup();
+    const entry = {
+      id: "entry-id",
+      catalog_id: "br",
+      home: "Flamengo",
+      away: "Palmeiras",
+      market: "Gols · Total do jogo · Mais de 2,5 · Jogo inteiro",
+      stake: 10,
+      odds: 1.52,
+      status: "won",
+      bookmaker: "Casa",
+      notes: "Análise",
+      event_at: "2026-10-04T14:00:00Z",
+      created_at: "2026-10-04T12:00:00Z",
+      settled_at: "2026-10-04T15:00:00Z",
+    };
+    render(
+      <BetForm
+        entry={entry}
+        catalog={catalog}
+        balance={0}
+        onClose={() => {}}
+        onSaved={async () => {}}
+      />,
+    );
+    expect(
+      (screen.getByLabelText("Odd decimal") as HTMLInputElement).value,
+    ).toBe("1.52");
+    await user.clear(screen.getByLabelText("Odd decimal"));
+    await user.type(screen.getByLabelText("Odd decimal"), "1.58");
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    await waitFor(() =>
+      expect(calls.command).toHaveBeenCalledWith(
+        "edit",
+        expect.objectContaining({
+          id: entry.id,
+          odds: 1.58,
+          stake: 10,
+          market: entry.market,
+          bookmaker: "Casa",
+          notes: "Análise",
+        }),
+        expect.any(String),
+      ),
+    );
+  });
   it("resets downstream selection when switching country or kind", async () => {
     const user = userEvent.setup();
     render(

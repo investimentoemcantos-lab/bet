@@ -1423,3 +1423,24 @@ textarea {
 .panel:has(.search-select-menu) {
   overflow: visible;
 }
+
+.entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.danger {
+  color: #ff8d97;
+  border-color: #73383f;
+}
+.danger:hover {
+  background: #44262b;
+}
+.market-change {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.market-change input {
+  width: auto;
+}

@@ -59,6 +59,8 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState("all");
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<Entry | null>(null);
+  const [deleting, setDeleting] = useState<Entry | null>(null);
   const [detail, setDetail] = useState<Entry | null>(null);
   const [result, setResult] = useState("");
   const [notice, setNotice] = useState("");
@@ -69,7 +71,7 @@ export default function App() {
   activeUser.current = session?.user.id;
   useEffect(
     () => setMutationRequest(crypto.randomUUID()),
-    [modal, detail?.id, result],
+    [modal, detail?.id, deleting?.id, result],
   );
   useEffect(() => {
     supabase.auth
@@ -148,9 +150,9 @@ export default function App() {
       const fetchAll = async (table: string) => {
         let rows: unknown[] = [];
         for (let from = 0; ; from += 1000) {
-          const r = await supabase
-            .from(table)
-            .select("*")
+          let query = supabase.from(table).select("*");
+          if (table === "bet_entries") query = query.is("deleted_at", null);
+          const r = await query
             .order(table === "bet_catalog" ? "name" : "created_at", {
               ascending: table === "bet_catalog",
             })
@@ -189,11 +191,13 @@ export default function App() {
     }
   }, [session?.user.id]);
   useEffect(() => {
-    if (!modal && !detail) return;
+    if (!modal && !detail && !editing && !deleting) return;
     const fn = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !busy) {
         setModal("");
         setDetail(null);
+        setEditing(null);
+        setDeleting(null);
       }
     };
     const previous = document.activeElement as HTMLElement | null;
@@ -226,7 +230,7 @@ export default function App() {
       previous?.focus();
       document.body.style.overflow = old;
     };
-  }, [modal, detail, busy]);
+  }, [modal, detail, editing, deleting, busy]);
   const scoped = useMemo(
     () =>
       entries.filter(
@@ -326,6 +330,15 @@ export default function App() {
       onDetail={(e) => {
         setDetail(e);
         setResult(e.status);
+        setNotice("");
+      }}
+      onEdit={(e) => {
+        setDetail(null);
+        setEditing(e);
+      }}
+      onDelete={(e) => {
+        setDetail(null);
+        setDeleting(e);
         setNotice("");
       }}
       onStart={() => setModal(balance ? "bet" : "deposit")}
@@ -583,6 +596,79 @@ export default function App() {
           <span>Resultados registrados por você · Valores em BRL</span>
         </footer>
       </main>
+      {editing && (
+        <BetForm
+          key={editing.id}
+          entry={editing}
+          catalog={catalog}
+          balance={balance}
+          onClose={() => setEditing(null)}
+          onSaved={load}
+        />
+      )}
+      {deleting && (
+        <div className="modal-backdrop">
+          <section
+            className="modal small-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-title"
+          >
+            <header>
+              <h2 id="delete-title">Apagar entrada?</h2>
+              <button
+                className="icon-button"
+                aria-label="Fechar"
+                disabled={busy}
+                onClick={() => setDeleting(null)}
+              >
+                <X />
+              </button>
+            </header>
+            <p>
+              {deleting.home} × {deleting.away}
+            </p>
+            <p className="muted">
+              A entrada sairá das listas e estatísticas. O efeito dela na banca
+              será revertido, incluindo qualquer retorno recebido. O ajuste
+              ficará no extrato.
+            </p>
+            {notice && (
+              <p className="error" role="alert">
+                {notice}
+              </p>
+            )}
+            <footer>
+              <button disabled={busy} onClick={() => setDeleting(null)}>
+                Cancelar
+              </button>
+              <button
+                className="danger"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  setNotice("");
+                  try {
+                    await command(
+                      "delete",
+                      { id: deleting.id },
+                      mutationRequest,
+                    );
+                    await load();
+                    setDeleting(null);
+                  } catch (e) {
+                    setNotice((e as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {busy ? "Apagando…" : "Apagar entrada"}
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
       {modal === "bet" && (
         <BetForm
           catalog={catalog}
@@ -764,7 +850,24 @@ export default function App() {
               </p>
             )}
             <footer>
-              <button onClick={() => setDetail(null)}>Fechar</button>
+              <button
+                onClick={() => {
+                  setEditing(detail);
+                  setDetail(null);
+                }}
+              >
+                Editar entrada
+              </button>
+              <button
+                className="danger"
+                onClick={() => {
+                  setDeleting(detail);
+                  setDetail(null);
+                  setNotice("");
+                }}
+              >
+                Apagar
+              </button>
               <button
                 className="primary"
                 disabled={busy || result === detail.status}
