@@ -1,3 +1,4 @@
+import SearchableSelect from "./SearchableSelect";
 import DashboardPage from "./DashboardPage";
 import CatalogPage from "./CatalogPage";
 import AnalyticsPage from "./AnalyticsPage";
@@ -442,7 +443,7 @@ export default function App() {
             <>
               <div className="section-toolbar">
                 <span className="muted">Desempenho das entradas</span>
-                <select
+                <SearchableSelect
                   aria-label="Período"
                   value={period}
                   onChange={(e) => setPeriod(e.target.value)}
@@ -451,7 +452,7 @@ export default function App() {
                   <option value="7">Últimos 7 dias</option>
                   <option value="30">Últimos 30 dias</option>
                   <option value="90">Últimos 90 dias</option>
-                </select>
+                </SearchableSelect>
               </div>
               <div className="stats-grid">
                 <article className="stat main-stat">
@@ -524,7 +525,7 @@ export default function App() {
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
-                <select
+                <SearchableSelect
                   aria-label="Resultado"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
@@ -535,8 +536,8 @@ export default function App() {
                       {n}
                     </option>
                   ))}
-                </select>
-                <select
+                </SearchableSelect>
+                <SearchableSelect
                   aria-label="Período"
                   value={period}
                   onChange={(e) => setPeriod(e.target.value)}
@@ -544,7 +545,7 @@ export default function App() {
                   <option value="all">Todo o período</option>
                   <option value="30">Últimos 30 dias</option>
                   <option value="90">Últimos 90 dias</option>
-                </select>
+                </SearchableSelect>
                 <button onClick={exportCsv}>
                   <Download size={16} />
                   Exportar CSV
@@ -741,7 +742,7 @@ export default function App() {
             {detail.notes && <p className="notes">{detail.notes}</p>}
             <label>
               Resultado
-              <select
+              <SearchableSelect
                 value={result}
                 onChange={(e) => setResult(e.target.value)}
               >
@@ -750,7 +751,7 @@ export default function App() {
                     {n}
                   </option>
                 ))}
-              </select>
+              </SearchableSelect>
             </label>
             <p className="muted">
               Ganha: credita entrada + lucro. Perdida: mantém o débito.

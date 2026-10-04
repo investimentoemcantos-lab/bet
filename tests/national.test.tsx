@@ -1,3 +1,4 @@
+import { selectOption } from "./selectOption";
 import { afterEach, it, expect, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -34,12 +35,12 @@ it("registers Greece vs Germany in UEFA Nations League A with over 3.5 cards", a
   const league = data.find(
     (c) => c.name === "Liga das Nações da UEFA A · 2026/27",
   )!;
-  await u.selectOptions(screen.getByLabelText("Competição"), league.id);
-  await u.selectOptions(screen.getByLabelText("Seleção 1"), "Grécia");
-  await u.selectOptions(screen.getByLabelText("Seleção 2"), "Alemanha");
-  await u.selectOptions(screen.getByLabelText("Mercado"), "cards");
-  await u.selectOptions(screen.getByLabelText("Mais ou menos"), "over");
-  await u.selectOptions(screen.getByLabelText("Linha"), "3.5");
+  await selectOption(u, screen.getByLabelText("Competição"), league.id);
+  await selectOption(u, screen.getByLabelText("Seleção 1"), "Grécia");
+  await selectOption(u, screen.getByLabelText("Seleção 2"), "Alemanha");
+  await selectOption(u, screen.getByLabelText("Mercado"), "cards");
+  await selectOption(u, screen.getByLabelText("Mais ou menos"), "over");
+  await selectOption(u, screen.getByLabelText("Linha"), "3.5");
   await u.type(screen.getByLabelText("Valor da entrada (R$)"), "10");
   await u.type(screen.getByLabelText("Odd decimal"), "1.77");
   await u.click(screen.getByRole("button", { name: "Registrar entrada" }));

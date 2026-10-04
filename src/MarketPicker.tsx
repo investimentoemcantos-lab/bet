@@ -1,3 +1,4 @@
+import SearchableSelect from "./SearchableSelect";
 import {
   MARKETS,
   PERIODS,
@@ -28,7 +29,7 @@ export default function MarketPicker({
       <div className="form-grid">
         <label>
           Mercado
-          <select
+          <SearchableSelect
             required
             value={value.type}
             onChange={(e) =>
@@ -46,12 +47,12 @@ export default function MarketPicker({
                 {m.name}
               </option>
             ))}
-          </select>
+          </SearchableSelect>
         </label>
         {m && m.kind !== "custom" && m.id !== "half_full" && (
           <label>
             Período
-            <select
+            <SearchableSelect
               value={value.period}
               onChange={(e) => patch({ period: e.target.value })}
             >
@@ -60,13 +61,13 @@ export default function MarketPicker({
                   {name}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
         )}
         {m?.scope && (
           <label>
             Aplicar a
-            <select
+            <SearchableSelect
               value={value.scope}
               onChange={(e) => patch({ scope: e.target.value })}
             >
@@ -75,13 +76,13 @@ export default function MarketPicker({
               )}
               <option value="home">Equipe 1{home ? " — " + home : ""}</option>
               <option value="away">Equipe 2{away ? " — " + away : ""}</option>
-            </select>
+            </SearchableSelect>
           </label>
         )}
         {m?.kind === "total" && (
           <label>
             Mais ou menos
-            <select
+            <SearchableSelect
               required
               value={value.selection}
               onChange={(e) => patch({ selection: e.target.value })}
@@ -89,13 +90,13 @@ export default function MarketPicker({
               <option value="">Selecione a direção</option>
               <option value="over">Mais de (Over)</option>
               <option value="under">Menos de (Under)</option>
-            </select>
+            </SearchableSelect>
           </label>
         )}
         {m?.kind === "handicap" && (
           <label>
             Seleção
-            <select
+            <SearchableSelect
               required
               value={value.selection}
               onChange={(e) => patch({ selection: e.target.value })}
@@ -106,13 +107,13 @@ export default function MarketPicker({
                 <option value="draw">Empate</option>
               )}
               <option value="away">Equipe 2{away ? " — " + away : ""}</option>
-            </select>
+            </SearchableSelect>
           </label>
         )}
         {lined && (
           <label>
             Linha
-            <select
+            <SearchableSelect
               required
               value={value.line}
               onChange={(e) => patch({ line: e.target.value, customLine: "" })}
@@ -124,7 +125,7 @@ export default function MarketPicker({
                 </option>
               ))}
               <option value="custom">Outra linha…</option>
-            </select>
+            </SearchableSelect>
           </label>
         )}
         {lined && value.line === "custom" && (
@@ -150,7 +151,7 @@ export default function MarketPicker({
         {m?.kind === "choice" && (
           <label>
             Seleção
-            <select
+            <SearchableSelect
               required
               value={value.selection}
               onChange={(e) => patch({ selection: e.target.value })}
@@ -161,7 +162,7 @@ export default function MarketPicker({
                   {name}
                 </option>
               ))}
-            </select>
+            </SearchableSelect>
           </label>
         )}
         {m?.kind === "score" && (

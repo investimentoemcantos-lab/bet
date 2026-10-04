@@ -1,3 +1,4 @@
+import SearchableSelect from "./SearchableSelect";
 import { competitionsFor } from "./catalog";
 import MarketPicker from "./MarketPicker";
 import { emptyMarket, marketLabel } from "./markets";
@@ -132,7 +133,7 @@ export default function BetForm({
             {kind === "clubs" && (
               <label>
                 País
-                <select
+                <SearchableSelect
                   required
                   value={country}
                   onChange={(e) => {
@@ -146,12 +147,12 @@ export default function BetForm({
                   {countries.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </label>
             )}
             <label className={kind === "national" ? "full" : undefined}>
               Competição
-              <select
+              <SearchableSelect
                 required
                 disabled={kind === "clubs" && !country}
                 value={league}
@@ -190,11 +191,11 @@ export default function BetForm({
                     </option>
                   ))
                 )}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               {kind === "national" ? "Seleção 1" : "Equipe 1"}
-              <select
+              <SearchableSelect
                 required
                 disabled={!league}
                 value={home}
@@ -210,11 +211,11 @@ export default function BetForm({
                   .map((t) => (
                     <option key={t}>{t}</option>
                   ))}
-              </select>
+              </SearchableSelect>
             </label>
             <label>
               {kind === "national" ? "Seleção 2" : "Equipe 2"}
-              <select
+              <SearchableSelect
                 required
                 disabled={!league}
                 value={away}
@@ -230,7 +231,7 @@ export default function BetForm({
                   .map((t) => (
                     <option key={t}>{t}</option>
                   ))}
-              </select>
+              </SearchableSelect>
             </label>
             <MarketPicker
               value={market}
