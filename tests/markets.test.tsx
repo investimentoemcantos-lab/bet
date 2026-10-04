@@ -91,6 +91,48 @@ describe("Market and line selection", () => {
       "Palmeiras +5,25",
     );
   });
+  it("supports both teams with negative, positive, zero and custom corner handicaps", async () => {
+    const u = userEvent.setup();
+    render(<Fixture />);
+    await selectOption(
+      u,
+      screen.getByLabelText("Mercado"),
+      "corners_asian_handicap",
+    );
+    expect(screen.queryByLabelText("Mais ou menos")).toBeNull();
+    await selectOption(u, screen.getByLabelText("Seleção"), "home");
+    await selectOption(u, screen.getByLabelText("Linha"), "-1.5");
+    expect(screen.getByLabelText("Entrada selecionada").textContent).toBe(
+      "Escanteios — handicap asiático · Flamengo -1,5 · Jogo inteiro",
+    );
+    await selectOption(u, screen.getByLabelText("Seleção"), "away");
+    await selectOption(u, screen.getByLabelText("Linha"), "1.25");
+    await selectOption(u, screen.getByLabelText("Período"), "first");
+    expect(screen.getByLabelText("Entrada selecionada").textContent).toBe(
+      "Escanteios — handicap asiático · Palmeiras +1,25 · 1º tempo",
+    );
+    await selectOption(u, screen.getByLabelText("Linha"), "0");
+    expect(screen.getByLabelText("Entrada selecionada").textContent).toContain(
+      "Palmeiras 0",
+    );
+    await selectOption(u, screen.getByLabelText("Linha"), "custom");
+    await u.type(screen.getByLabelText("Linha personalizada"), "-21.5");
+    expect(screen.getByLabelText("Entrada selecionada").textContent).toContain(
+      "Palmeiras -21,5",
+    );
+    expect(
+      marketLabel(
+        {
+          ...emptyMarket(),
+          type: "corners_asian_handicap",
+          selection: "draw",
+          line: "1",
+        },
+        "A",
+        "B",
+      ),
+    ).toBe("");
+  });
   it("rejects missing directions, invalid steps and fractional exact goals", () => {
     const base = { ...emptyMarket(), type: "goals", line: "0.75" };
     expect(marketLabel(base, "A", "B")).toBe("");

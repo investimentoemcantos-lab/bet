@@ -11,6 +11,13 @@ export const MARKETS: MarketDefinition[] = [
   { id: "goals", name: "Gols", kind: "total", max: 10, scope: true },
   { id: "corners", name: "Escanteios", kind: "total", max: 30, scope: true },
   {
+    id: "corners_asian_handicap",
+    name: "Escanteios — handicap asiático",
+    kind: "handicap",
+    max: 20,
+    step: 0.25,
+  },
+  {
     id: "corners_result",
     name: "Escanteios — resultado (1X2)",
     kind: "choice",

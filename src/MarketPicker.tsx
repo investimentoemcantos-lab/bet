@@ -45,7 +45,11 @@ export default function MarketPicker({
             <option value="">Selecione o mercado</option>
             {MARKETS.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.name}
+                {m.id === "corners"
+                  ? "Escanteios — mais/menos (Over/Under)"
+                  : m.id === "asian_handicap"
+                    ? "Gols — handicap asiático"
+                    : m.name}
               </option>
             ))}
           </SearchableSelect>
@@ -210,6 +214,13 @@ export default function MarketPicker({
       {m?.kind === "total" && (
         <p className="muted market-help">
           Linhas de 0,25 em 0,25: 0,5 · 0,75 · 1 · 1,25…
+        </p>
+      )}
+      {m?.kind === "handicap" && m.id !== "european_handicap" && (
+        <p className="muted market-help">
+          O handicap é aplicado ao time selecionado. Escolha uma linha negativa
+          ou positiva, como −1,5 ou +1,5. Linhas de 0,25 em 0,25, incluindo
+          zero; use “Outra linha” para valores fora da lista.
         </p>
       )}
       {m?.id === "corners_result" && (
