@@ -1,3 +1,5 @@
+import MarketPicker from "./MarketPicker";
+import { emptyMarket, marketLabel } from "./markets";
 import { useState } from "react";
 import { X, Check, ChevronRight } from "lucide-react";
 import { command, money, type Competition } from "./lib";
@@ -12,6 +14,7 @@ export default function BetForm({
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
+  const [market, setMarket] = useState(emptyMarket);
   const [kind, setKind] = useState("clubs");
   const [country, setCountry] = useState("");
   const [league, setLeague] = useState("");
@@ -65,6 +68,11 @@ export default function BetForm({
             setError("");
             const f = new FormData(e.currentTarget);
             try {
+              const label = marketLabel(market, home, away);
+              if (!label)
+                throw new Error(
+                  "Selecione o mercado e preencha a seleção e a linha.",
+                );
               await command(
                 "place",
                 {
@@ -73,7 +81,7 @@ export default function BetForm({
                   away,
                   stake: Number(stake),
                   odds: Number(odds),
-                  market: String(f.get("market")),
+                  market: label,
                   bookmaker: String(f.get("bookmaker")),
                   notes: String(f.get("notes")),
                   event_at: new Date(String(f.get("event_at"))).toISOString(),
@@ -188,31 +196,12 @@ export default function BetForm({
                   ))}
               </select>
             </label>
-            <label className="full">
-              Entrada / mercado
-              <input
-                name="market"
-                required
-                maxLength={200}
-                placeholder="Ex.: Mais de 2,5 gols · Vitória do mandante"
-                list="markets"
-              />
-              <datalist id="markets">
-                {[
-                  "Vitória da equipe 1",
-                  "Vitória da equipe 2",
-                  "Empate",
-                  "Mais de 2,5 gols",
-                  "Menos de 2,5 gols",
-                  "Ambas marcam",
-                  "Dupla chance",
-                  "Handicap asiático",
-                  "Escanteios",
-                ].map((t) => (
-                  <option key={t} value={t} />
-                ))}
-              </datalist>
-            </label>
+            <MarketPicker
+              value={market}
+              onChange={setMarket}
+              home={home}
+              away={away}
+            />
             <label>
               Valor da entrada (R$)
               <input

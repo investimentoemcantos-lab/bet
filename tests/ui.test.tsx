@@ -75,10 +75,9 @@ describe("Entry workflow", () => {
       ).some((o) => o.value === "Flamengo"),
     ).toBe(false);
     await user.selectOptions(screen.getByLabelText("Equipe 2"), "Palmeiras");
-    await user.type(
-      screen.getByLabelText("Entrada / mercado"),
-      "Mais de 2,5 gols",
-    );
+    await user.selectOptions(screen.getByLabelText("Mercado"), "goals");
+    await user.selectOptions(screen.getByLabelText("Mais ou menos"), "over");
+    await user.selectOptions(screen.getByLabelText("Linha"), "2.5");
     await user.type(screen.getByLabelText("Valor da entrada (R$)"), "100");
     await user.type(screen.getByLabelText("Odd decimal"), "2");
     expect(screen.getByText("R$ 200.00")).toBeTruthy();
@@ -92,6 +91,7 @@ describe("Entry workflow", () => {
         away: "Palmeiras",
         stake: 100,
         odds: 2,
+        market: "Gols · Total do jogo · Mais de 2,5 · Jogo inteiro",
       }),
       expect.any(String),
     );

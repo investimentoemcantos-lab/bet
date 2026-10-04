@@ -1267,3 +1267,51 @@ textarea {
     transition: none !important;
   }
 }
+.market-picker {
+  border: 1px solid #34432e;
+  border-radius: 11px;
+  padding: 19px 16px 16px;
+  margin: 4px 0 0;
+  min-width: 0;
+  background: #141c1280;
+}
+.market-picker legend {
+  padding: 0 8px;
+  color: #b8d5a5;
+  font-size: 14px;
+  font-weight: 600;
+}
+.market-help {
+  margin-top: 13px;
+  font-size: 12px;
+}
+.market-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 13px 15px;
+  border-radius: 8px;
+  background: #bbf86a0d;
+  border: 1px solid #bbf86a25;
+  margin-top: 16px;
+}
+.market-preview span {
+  font-size: 12px;
+  color: #8ca57b;
+}
+.market-preview output {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #d9f5c8;
+}
+@media (max-width: 700px) {
+  .market-picker {
+    padding: 15px 11px;
+  }
+  .market-picker .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .market-preview output {
+    font-size: 13px;
+  }
+}
