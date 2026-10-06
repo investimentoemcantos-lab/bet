@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   toggle: vi.fn(),
   saveNote: vi.fn().mockResolvedValue(true),
 }));
+vi.mock("../src/lib", () => ({ supabase: {} }));
 vi.mock("../src/sports/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/sports/api")>();
   return { ...actual, sportsRequest: mocks.request };
