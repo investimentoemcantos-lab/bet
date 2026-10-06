@@ -197,7 +197,11 @@ Deno.serve(async (req: Request) => {
           Object.keys(payload.errors || {}).length
         )
           throw new ProviderError(
-            "A fonte não autorizou esta consulta. Verifique a chave, o plano e a temporada disponível.",
+            payload.errors?.plan
+              ? "Seu plano da API-Football não libera esta consulta ou temporada. Selecione uma temporada disponível no seu plano."
+              : payload.errors?.parameters
+                ? "A fonte recusou os filtros desta consulta. Tente selecionar outra temporada."
+                : "A fonte não autorizou esta consulta. Verifique a chave e a disponibilidade do plano.",
             502,
           );
         const fetchedAt = new Date().toISOString();

@@ -8,6 +8,7 @@ const number = (n: number | null, suffix = "") =>
     : n.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + suffix;
 export default function HistoryAnalysis({
   team,
+  error,
   matches,
   stats,
   before,
@@ -16,6 +17,7 @@ export default function HistoryAnalysis({
   busy,
 }: {
   team: Team;
+  error?: string;
   matches: Match[];
   stats: MatchStats;
   before: string;
@@ -48,7 +50,7 @@ export default function HistoryAnalysis({
           <h3>{team.name}</h3>
         </div>
         <span className="sports-sample">
-          {s.count} de {size} jogos
+          {error ? "Consulta indisponível" : `${s.count} de ${size} jogos`}
         </span>
       </header>
       <div className="sports-history-filters">
@@ -94,11 +96,10 @@ export default function HistoryAnalysis({
       <details className="sports-data-details"><summary>Como o histórico é calculado</summary><p className="muted sports-method">
         Amostra anterior ao confronto, filtrada antes de selecionar os últimos{" "}
         {size}. Gols e resultados nos 90 minutos. Estatísticas de partidas com
-        prorrogação podem incluir o tempo extra. Foram consultados até 100
-        resultados recentes; o histórico acessível depende do plano e da
+        prorrogação podem incluir o tempo extra. O histórico usa a temporada selecionada; o histórico acessível depende do plano e da
         cobertura.
       </p></details>
-      {s.count ? (
+      {error ? <div className="sports-history-error" role="alert"><h3>Não foi possível consultar o histórico</h3><p>{error}</p><p>Escolha outra temporada acima ou tente atualizar o histórico.</p></div> : s.count ? (
         <>
           <div className="sports-form">
             <b className="positive">{s.wins} vitórias</b>
@@ -237,7 +238,7 @@ export default function HistoryAnalysis({
         <div className="sports-empty">
           <h3>Sem resultados nesta amostra</h3>
           <p>
-            Tente outro campeonato ou local do jogo. Se continuar vazio, a fonte não disponibilizou o histórico desta equipe.
+            Não há partidas anteriores ao confronto nesta temporada e nestes filtros. Escolha outra temporada ou amplie os filtros.
           </p>
         </div>
       )}

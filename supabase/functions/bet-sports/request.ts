@@ -25,12 +25,15 @@ export function buildQuery(body: Record<string, unknown>): ProviderQuery {
         ttl: 300,
       };
     }
-    case "history":
+    case "history": {
+      const season = body.season;
+      if (season !== undefined && (typeof season !== "number" || !Number.isInteger(season) || season < 2000 || season > new Date().getUTCFullYear() + 1)) throw new Error("Temporada inválida.");
       return {
         path: "fixtures",
-        params: { team: String(positiveId(body.team)), last: "100", timezone },
+        params: { team: String(positiveId(body.team)), ...(season === undefined ? {last: "100"} : {season: String(season)}), timezone },
         ttl: 21600,
       };
+    }
     case "fixture":
       return {
         path: "fixtures",
