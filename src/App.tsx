@@ -39,9 +39,11 @@ import {
   type Competition,
 } from "./lib";
 
+const SportsPage = lazy(() => import("./sports/SportsPage"));
 const AnalyticsPage = lazy(() => import("./AnalyticsPage"));
 const pages = [
   ["dashboard", "Visão geral", LayoutDashboard],
+  ["sports", "Central de jogos", Activity],
   ["entries", "Minhas entradas", ListFilter],
   ["bank", "Minha banca", Wallet],
   ["analytics", "Análise detalhada", ChartNoAxesCombined],
@@ -127,6 +129,7 @@ export default function App() {
                   type: "string",
                   enum: [
                     "dashboard",
+                    "sports",
                     "entries",
                     "bank",
                     "analytics",
@@ -428,7 +431,11 @@ export default function App() {
         <div className="page">
           <div className="page-heading">
             <div>
-              <p className="eyebrow">SEUS NÚMEROS, EM PERSPECTIVA</p>
+              <p className="eyebrow">
+                {page === "sports"
+                  ? "FUTEBOL, EM PERSPECTIVA"
+                  : "SEUS NÚMEROS, EM PERSPECTIVA"}
+              </p>
               <h1>
                 {page === "dashboard"
                   ? "Visão geral"
@@ -437,13 +444,15 @@ export default function App() {
               <p className="muted">
                 {page === "dashboard"
                   ? "Acompanhe sua banca. Entenda cada resultado."
-                  : page === "entries"
-                    ? "Do primeiro registro ao resultado final."
-                    : page === "bank"
-                      ? "Seu saldo e todas as movimentações."
-                      : page === "analytics"
-                        ? "Encontre padrões no seu histórico."
-                        : "Clubes e seleções prontos para suas entradas."}
+                  : page === "sports"
+                    ? "Pesquise os jogos. Compare o histórico. Construa sua análise."
+                    : page === "entries"
+                      ? "Do primeiro registro ao resultado final."
+                      : page === "bank"
+                        ? "Seu saldo e todas as movimentações."
+                        : page === "analytics"
+                          ? "Encontre padrões no seu histórico."
+                          : "Clubes e seleções prontos para suas entradas."}
               </p>
             </div>
             <button
@@ -617,6 +626,13 @@ export default function App() {
                   setNotice("");
                 }}
               />
+            </Suspense>
+          )}
+          {page === "sports" && (
+            <Suspense
+              fallback={<p role="status">Carregando central de jogos…</p>}
+            >
+              <SportsPage key={session.user.id} userId={session.user.id} />
             </Suspense>
           )}
           {page === "catalog" && (
