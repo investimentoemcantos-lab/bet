@@ -22,6 +22,7 @@ export default function MatchAnalysis({
   onStar: () => void;
   onSaveNote: (note: string) => Promise<boolean>;
 }) {
+  const [teamView, setTeamView] = useState("home");
   const [tab, setTab] = useState("history"),
     [home, setHome] = useState<Match[]>([]),
     [away, setAway] = useState<Match[]>([]),
@@ -130,14 +131,14 @@ export default function MatchAnalysis({
           {m.venue ? ` · ${m.venue}` : ""}
           {m.round ? ` · ${m.round}` : ""}
         </p>
-        <p className="muted">Transmissão: ainda não integrada.</p>
+        
       </section>
       <div className="sports-tabs" role="tablist" aria-label="Análise do jogo">
         {[
-          ["history", "Histórico e estatísticas"],
-          ["match", "Estatísticas do confronto"],
+          ["history", "Histórico"],
+          ["match", "Estatísticas do jogo"],
           ["h2h", "Confrontos diretos"],
-          ["odds", "Odds"],
+          ["odds", "Cotações"],
           ["notes", "Minha análise"],
         ].map(([id, label]) => (
           <button
@@ -171,15 +172,12 @@ export default function MatchAnalysis({
               </div>
             ) : (
               <>
-                <p className="sports-source muted">
-                  Fonte: API-Football · Histórico consultado em{" "}
-                  {fetchedAt
-                    ? new Date(fetchedAt).toLocaleString("pt-BR")
-                    : "—"}
-                  . Frequências históricas não são probabilidades garantidas.
-                </p>
+                <div className="sports-team-picker" aria-label="Equipe para analisar">
+                  <button aria-pressed={teamView === "home"} onClick={() => setTeamView("home")}>{m.home.name}<small>Mandante</small></button>
+                  <button aria-pressed={teamView === "away"} onClick={() => setTeamView("away")}>{m.away.name}<small>Visitante</small></button>
+                </div>
                 <div className="sports-history-grid">
-                  <HistoryAnalysis
+                  <div hidden={teamView !== "home"}><HistoryAnalysis
                     team={m.home}
                     matches={home}
                     stats={stats}
@@ -187,8 +185,8 @@ export default function MatchAnalysis({
                     leagueId={m.leagueId}
                     onStatistics={(ids) => void loadStatistics(ids)}
                     busy={busy}
-                  />
-                  <HistoryAnalysis
+                  /></div>
+                  <div hidden={teamView !== "away"}><HistoryAnalysis
                     team={m.away}
                     matches={away}
                     stats={stats}
@@ -196,8 +194,9 @@ export default function MatchAnalysis({
                     leagueId={m.leagueId}
                     onStatistics={(ids) => void loadStatistics(ids)}
                     busy={busy}
-                  />
+                  /></div>
                 </div>
+                <details className="sports-data-details"><summary>Sobre estes dados</summary><p>Fonte: API-Football. {fetchedAt ? `Consultado em ${new Date(fetchedAt).toLocaleString("pt-BR")}.` : "Sem histórico retornado."} As frequências mostram resultados passados e não garantem resultados futuros.</p></details>
               </>
             )}
           </>

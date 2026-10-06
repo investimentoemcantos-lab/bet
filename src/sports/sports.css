@@ -459,3 +459,64 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Compact research workspace: one team and one metric group at a time. */
+.sports-central, .sports-analysis { gap: 14px; }
+.sports-control { padding: 18px 20px; }
+.sports-control h2 { font-size: 22px; }
+.sports-control-heading .eyebrow { display: none; }
+.sports-control-heading p.muted { margin: 4px 0 0; font-size: 13px; }
+.sports-provider { background: transparent; padding: 6px 10px; color: var(--muted); }
+.sports-calendar { margin: 16px 0; gap: 10px; }
+.sports-league > header { padding: 12px 18px; }
+.sports-league h3 { font-size: 15px; }
+.sports-match-open { padding: 12px; }
+.sports-confrontation { padding: 18px 24px; }
+.sports-scoreboard { margin: 16px 0; grid-template-columns: 1fr 110px 1fr; }
+.sports-scoreboard h2 { font-size: 22px; margin: 0; }
+.sports-scoreboard strong { font-size: 28px; }
+.sports-confrontation > p.muted { margin: 5px 0 0; font-size: 12px; }
+.sports-tabs { gap: 0; padding-bottom: 0; }
+.sports-tabs button { border-radius: 0; padding: 12px 18px; }
+.sports-tabs button[aria-selected="true"] { background: transparent; border: 1px solid transparent; border-bottom: 2px solid var(--accent); }
+.sports-team-picker { display: flex; gap: 8px; margin: 16px 0 10px; }
+.sports-team-picker button { display: flex; gap: 12px; align-items: center; background: transparent; padding: 10px 16px; }
+.sports-team-picker small { color: var(--muted); font-weight: 400; font-size: 11px; }
+.sports-team-picker button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.sports-history-grid { display: block; margin-top: 0; }
+.sports-history-grid > [hidden] { display: none; }
+.sports-history { padding: 18px 20px; }
+.sports-history .eyebrow { display: none; }
+.sports-history-filters { margin-top: 14px; max-width: 820px; }
+.sports-data-details { color: var(--muted); font-size: 12px; margin: 10px 0; }
+.sports-data-details summary, .sports-results-details summary { cursor: pointer; padding: 8px 0; }
+.sports-data-details p { line-height: 1.65; max-width: 900px; margin: 8px 0; }
+.sports-form { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.sports-metric-picker { display: flex; gap: 8px; margin: 14px 0; }
+.sports-metric-picker button { background: transparent; padding: 8px 16px; font-size: 12px; }
+.sports-metric-picker button[aria-pressed="true"] { background: #232c23; color: var(--accent); border-color: #45563d; }
+.sports-metrics { grid-template-columns: repeat(4, minmax(0,1fr)); background: transparent; border: 0; gap: 12px; border-radius: 0; }
+.sports-metrics > div { background: transparent; border-left: 2px solid var(--border); padding: 8px 14px; gap: 5px; }
+.sports-metrics small { font-size: 12px; }
+.sports-metrics strong { font-size: 26px; }
+.sports-lines { grid-template-columns: repeat(4,1fr); gap: 18px; font-size: 12px; }
+.sports-lines strong { color: #eaf0e8; }
+.sports-stat-load { display: flex; gap: 20px; align-items: center; justify-content: space-between; }
+.sports-stat-load p { max-width: 600px; }
+.sports-stat-load button { flex-shrink: 0; }
+.sports-results-details { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; }
+.sports-history .sports-empty { padding: 24px 12px; text-align: left; border-top: 1px solid var(--border); margin-top: 14px; }
+.sports-history .sports-empty h3 { font-size: 15px; margin: 0; }
+.sports-history .sports-empty p { margin: 8px 0 0; font-size: 13px; max-width: 660px; }
+@media(max-width:650px) {
+ .sports-control, .sports-history { padding: 16px; }
+ .sports-control-heading { flex-direction: row; }
+ .sports-provider { font-size: 10px; white-space: normal; }
+ .sports-team-picker button { flex: 1; flex-direction: column; gap: 4px; padding: 10px; }
+ .sports-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .sports-lines { grid-template-columns: 1fr 1fr; gap: 10px; }
+ .sports-stat-load { align-items: start; flex-direction: column; gap: 8px; }
+ .sports-scoreboard { grid-template-columns: 1fr 70px 1fr; gap: 8px; }
+ .sports-scoreboard h2 { font-size: 16px; }
+ .sports-tabs button { padding: 10px 12px; }
+}
