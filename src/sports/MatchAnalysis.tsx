@@ -22,6 +22,9 @@ export default function MatchAnalysis({
   onStar: () => void;
   onSaveNote: (note: string) => Promise<boolean>;
 }) {
+  const [season, setSeason] = useState(m.season);
+  const [reload, setReload] = useState(0);
+  const [historyErrors, setHistoryErrors] = useState(["", ""]);
   const [teamView, setTeamView] = useState("home");
   const [tab, setTab] = useState("history"),
     [home, setHome] = useState<Match[]>([]),
@@ -42,29 +45,29 @@ export default function MatchAnalysis({
   const [statsFetchedAt, setStatsFetchedAt] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setHistoryErrors(["", ""]);
     void Promise.allSettled([
-      sportsRequest("history", { team: m.home.id }),
-      sportsRequest("history", { team: m.away.id }),
+      sportsRequest("history", { team: m.home.id, season }),
+      sportsRequest("history", { team: m.away.id, season }),
     ]).then((results) => {
       if (!active) return;
-      const errors: string[] = [];
+      const errors = ["", ""];
       results.forEach((r, i) => {
         if (r.status === "fulfilled") {
           (i === 0 ? setHome : setAway)(asMatches(r.value));
           setFetchedAt(r.value.fetchedAt);
           if (r.value.warning) setWarning(r.value.warning);
         } else
-          errors.push(
-            `${i === 0 ? m.home.name : m.away.name}: ${(r.reason as Error).message}`,
-          );
+          errors[i] = (r.reason as Error).message;
       });
-      setError(errors.join(" · "));
+      setHistoryErrors(errors);
       setLoading(false);
     });
     return () => {
       active = false;
     };
-  }, [m.id, m.home.id, m.away.id]);
+  }, [m.id, m.home.id, m.away.id, season, reload]);
   async function loadStatistics(ids: number[]) {
     setBusy(true);
     setError("");
@@ -131,7 +134,7 @@ export default function MatchAnalysis({
           {m.venue ? ` · ${m.venue}` : ""}
           {m.round ? ` · ${m.round}` : ""}
         </p>
-        
+
       </section>
       <div className="sports-tabs" role="tablist" aria-label="Análise do jogo">
         {[
@@ -172,12 +175,14 @@ export default function MatchAnalysis({
               </div>
             ) : (
               <>
+                <div className="sports-history-toolbar"><label>Temporada<select value={season} onChange={e => setSeason(Number(e.target.value))}>{Array.from({length: 6}, (_, i) => m.season - i).map(year => <option key={year} value={year}>{year}</option>)}</select></label><button onClick={() => setReload(v => v + 1)}>Atualizar histórico</button></div>
                 <div className="sports-team-picker" aria-label="Equipe para analisar">
                   <button aria-pressed={teamView === "home"} onClick={() => setTeamView("home")}>{m.home.name}<small>Mandante</small></button>
                   <button aria-pressed={teamView === "away"} onClick={() => setTeamView("away")}>{m.away.name}<small>Visitante</small></button>
                 </div>
                 <div className="sports-history-grid">
                   <div hidden={teamView !== "home"}><HistoryAnalysis
+                    error={historyErrors[0]}
                     team={m.home}
                     matches={home}
                     stats={stats}
@@ -187,6 +192,7 @@ export default function MatchAnalysis({
                     busy={busy}
                   /></div>
                   <div hidden={teamView !== "away"}><HistoryAnalysis
+                    error={historyErrors[1]}
                     team={m.away}
                     matches={away}
                     stats={stats}
