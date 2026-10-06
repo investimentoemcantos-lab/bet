@@ -38,11 +38,11 @@ export default function OddsPanel({ fixture }: { fixture: number }) {
     <section className="panel sports-odds">
       <header className="sports-section-header">
         <div>
-          <p className="eyebrow">ODDS DO CONFRONTO</p>
-          <h3>Casas, mercados e seleções</h3>
+          <p className="eyebrow">COTAÇÕES DO JOGO</p>
+          <h3>Compare as cotações</h3>
         </div>
         <button disabled={busy} onClick={() => void load()}>
-          {busy ? "Consultando…" : "Consultar odds"}
+          {busy ? "Consultando…" : "Consultar cotações"}
         </button>
       </header>
       <p className="muted">
@@ -96,7 +96,7 @@ export default function OddsPanel({ fixture }: { fixture: number }) {
                     <th>Casa</th>
                     <th>Mercado</th>
                     <th>Seleção / linha</th>
-                    <th>Odd</th>
+                    <th>Cotação</th>
                     <th>Atualização da fonte</th>
                   </tr>
                 </thead>
@@ -107,7 +107,7 @@ export default function OddsPanel({ fixture }: { fixture: number }) {
                       <td>{r.market}</td>
                       <td>{r.selection}</td>
                       <td>
-                        <strong>{r.odd.toFixed(2)}</strong>
+                        <strong>{r.odd.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                       </td>
                       <td>
                         {r.updated
@@ -121,7 +121,7 @@ export default function OddsPanel({ fixture }: { fixture: number }) {
             </div>
           ) : (
             <div className="sports-empty">
-              Nenhuma odd disponível para esta consulta.
+              Nenhuma cotação disponível para esta consulta.
             </div>
           )}
           {page < pages && (

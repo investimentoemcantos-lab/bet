@@ -23,6 +23,7 @@ export default function HistoryAnalysis({
   onStatistics: (ids: number[]) => void;
   busy: boolean;
 }) {
+  const [metric, setMetric] = useState("goals");
   const [size, setSize] = useState(10),
     [venue, setVenue] = useState<VenueFilter>("all"),
     [competition, setCompetition] = useState("all");
@@ -90,19 +91,22 @@ export default function HistoryAnalysis({
           </SearchableSelect>
         </label>
       </div>
-      <p className="muted sports-method">
+      <details className="sports-data-details"><summary>Como o histórico é calculado</summary><p className="muted sports-method">
         Amostra anterior ao confronto, filtrada antes de selecionar os últimos{" "}
         {size}. Gols e resultados nos 90 minutos. Estatísticas de partidas com
         prorrogação podem incluir o tempo extra. Foram consultados até 100
         resultados recentes; o histórico acessível depende do plano e da
         cobertura.
-      </p>
+      </p></details>
       {s.count ? (
         <>
           <div className="sports-form">
             <b className="positive">{s.wins} vitórias</b>
             <b>{s.draws} empates</b>
             <b className="negative">{s.losses} derrotas</b>
+          </div>
+          <div className="sports-metric-picker" aria-label="Indicadores do histórico">
+            {[["goals", "Gols"], ["corners", "Escanteios"], ["shots", "Chutes"]].map(([id, label]) => <button key={id} aria-pressed={metric === id} onClick={() => setMetric(id)}>{label}</button>)}
           </div>
           <div className="sports-metrics">
             {[
@@ -115,12 +119,12 @@ export default function HistoryAnalysis({
                 `${s.count} jogos`,
               ],
               [
-                "Cantos a favor",
+                "Escanteios a favor",
                 number(s.corners),
                 `${s.cornerCount} jogos com dados`,
               ],
               [
-                "Cantos contra",
+                "Escanteios contra",
                 number(s.cornersAgainst),
                 `${selected.filter((m) => stats[m.id]?.some((v) => v.teamId !== team.id && v.corners !== null)).length} jogos com dados`,
               ],
@@ -130,7 +134,7 @@ export default function HistoryAnalysis({
                 number(s.onTarget),
                 `${s.onTargetCount} jogos com dados`,
               ],
-            ].map(([label, value, coverage]) => (
+            ].filter((_, i) => metric === "goals" ? i < 4 : metric === "corners" ? i >= 4 && i < 6 : i >= 6).map(([label, value, coverage]) => (
               <div key={label}>
                 <small>{label}</small>
                 <strong>{value}</strong>
@@ -138,15 +142,15 @@ export default function HistoryAnalysis({
               </div>
             ))}
           </div>
-          <div className="sports-lines">
+          {metric === "goals" && <div className="sports-lines">
             {[0.5, 1.5, 2.5, 3.5].map((line) => (
               <span key={line}>
                 Mais de {number(line)} gols{" "}
                 <strong>{number(s.over(line), "%")}</strong>
               </span>
             ))}
-          </div>
-          <div className="sports-lines">
+          </div>}
+          {metric === "corners" && <><div className="sports-lines">
             {[8.5, 9.5, 10.5, 11.5].map((line) => (
               <span key={line}>
                 Mais de {number(line)} cantos{" "}
@@ -157,8 +161,8 @@ export default function HistoryAnalysis({
           <p className="muted sports-method">
             Linhas de cantos: {s.totalCornerCount} partidas com estatísticas das
             duas equipes.
-          </p>
-          <div className="sports-stat-load">
+          </p></>}
+          {metric !== "goals" && <div className="sports-stat-load">
             <p className="muted">
               Médias de cantos e chutes consideram somente partidas com dados.
               Valores ausentes não são zero. Estatísticas carregadas ficam em
@@ -176,8 +180,8 @@ export default function HistoryAnalysis({
                   ? `Carregar estatísticas de ${Math.min(10, missing.length)} jogos`
                   : "Estatísticas consultadas"}
             </button>
-          </div>
-          <div className="table-scroll">
+          </div>}
+          <details className="sports-results-details"><summary>Ver os {s.count} resultados da amostra</summary><div className="table-scroll">
             <table className="sports-results">
               <thead>
                 <tr>
@@ -227,14 +231,13 @@ export default function HistoryAnalysis({
                 })}
               </tbody>
             </table>
-          </div>
+          </div></details>
         </>
       ) : (
         <div className="sports-empty">
           <h3>Sem resultados nesta amostra</h3>
           <p>
-            Altere o mando ou o campeonato. A temporada disponível na API também
-            pode limitar o histórico.
+            Tente outro campeonato ou local do jogo. Se continuar vazio, a fonte não disponibilizou o histórico desta equipe.
           </p>
         </div>
       )}

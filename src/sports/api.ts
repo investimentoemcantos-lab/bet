@@ -1,3 +1,4 @@
+import { countryLabel, footballLabel } from "./labels";
 import { supabase } from "../lib";
 import { normalizeMatch } from "./analysis";
 import type { Match, OddsRow, SportsResponse } from "./types";
@@ -24,7 +25,7 @@ export async function sportsRequest(
   return data as SportsResponse;
 }
 export const asMatches = (r: SportsResponse): Match[] =>
-  r.response.map(normalizeMatch).filter((m): m is Match => m !== null);
+  r.response.map(normalizeMatch).filter((m): m is Match => m !== null).map(m => ({ ...m, country: countryLabel(m.country), league: footballLabel(m.league), round: m.round ? footballLabel(m.round) : null }));
 export function asOdds(r: SportsResponse): OddsRow[] {
   return r.response.flatMap((input) => {
     const item = input as {
@@ -41,8 +42,8 @@ export function asOdds(r: SportsResponse): OddsRow[] {
             ? [
                 {
                   bookmaker: b.name,
-                  market: m.name,
-                  selection: v.value,
+                  market: footballLabel(m.name),
+                  selection: footballLabel(v.value),
                   odd: Number(v.odd),
                   updated: item.update || null,
                 },

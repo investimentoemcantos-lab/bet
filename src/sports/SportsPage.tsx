@@ -131,8 +131,8 @@ export default function SportsPage({ userId }: { userId: string }) {
       <section className="panel sports-control">
         <div className="sports-control-heading">
           <div>
-            <p className="eyebrow">SEU PAINEL DE TRABALHO</p>
-            <h2>Encontre seu próximo confronto</h2>
+            <p className="eyebrow">CENTRAL DE JOGOS</p>
+            <h2>Jogos do dia</h2>
             <p className="muted">
               Calendário, histórico e análise no mesmo lugar.
             </p>
@@ -142,7 +142,7 @@ export default function SportsPage({ userId }: { userId: string }) {
             {configured === null
               ? "Verificando fonte"
               : configured
-                ? "API-Football"
+                ? "Dados conectados"
                 : "Fonte aguardando ativação"}
           </span>
         </div>
@@ -277,7 +277,7 @@ export default function SportsPage({ userId }: { userId: string }) {
           <strong>{visible.filter(live).length}</strong> ao vivo
         </span>
       </div>
-      <p className="sports-source muted">
+      <details className="sports-data-details"><summary>Atualização e disponibilidade</summary><p className="sports-source muted">
         {favorites
           ? "Favoritos de todas as datas. Horário e placar correspondem à última consulta salva."
           : "Horários de Brasília · Consultas sob demanda, sem atualização contínua."}
@@ -287,7 +287,7 @@ export default function SportsPage({ userId }: { userId: string }) {
         {remaining !== null
           ? ` · ${remaining} consultas disponíveis no orçamento de hoje`
           : ""}
-      </p>
+      </p></details>
       {busy && (
         <div className="panel sports-empty" role="status">
           Consultando jogos de {day.split("-").reverse().join("/")}…
